@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Watering System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header & Settings */
+        .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .settings-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .settings-content {
+            background: white;
+            margin: 5% auto;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            padding: 30px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .setting-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            background: #f8f9fa;
+        }
+
+        .setting-group h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Navigation */
+        .nav {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Content Pages */
+        .content {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            min-height: 60vh;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .status-card {
+            background: linear-gradient(45deg, #4CAF50, #81C784);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .metric {
+            display: inline-block;
+            margin: 0 20px;
+            font-size: 1.5em;
+        }
+
+        .control-btn {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #F57C00;
+            transform: scale(1.1);
+        }
+
+        .schedule-item, .history-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input[type="time"], input[type="number"], select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .btn-primary, .btn-success, .btn-danger {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary { background: #2196F3; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+
+        @media (max-width: 768px) {
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header dengan Settings Button -->
+        <div class="header">
+            <h1>🌱 Tandur Apps</h1>
+            <button class="settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="nav">
+            <div class="nav-grid">
+                <button class="nav-btn active" onclick="showPage('dashboard')">📊 Dashboard</button>
+                <button class="nav-btn" onclick="showPage('schedule')">⏰ Jadwal Penyiraman</button>
+                <button class="nav-btn" onclick="showPage('monitoring')">💧 Monitoring</button>
+                <button class="nav-btn" onclick="showPage('control')">🎮 Kontrol Manual</button>
+                <button class="nav-btn" onclick="showPage('notifications')">🔔 Notifikasi</button>
+                <button class="nav-btn" onclick="showPage('history')">📋 Riwayat</button>
+            </div>
+        </div>
+
+        <!-- Content Pages -->
+        <div class="content">
+            <!-- 1. Dashboard -->
+            <div id="dashboard" class="page active">
+                <div class="status-card">
+                    <div class="metric">
+                        <div style="font-size: 2.5em;">42%</div>
+                        <div>Kelembapan</div>
+                    </div>
+                    <div class="metric">
+                        <div style="font-size: 2.5em;" id="statusPump">OFF</div>
+                        <div>Status Pompa</div>
+                    </div>
+                    <div class="metric">
+                        <div style="font-size: 2.5em;">28°C</div>
+                        <div>Suhu</div>
+                    </div>
+                </div>
+                <h2>Selamat Datang!</h2>
+                <p>Sistem penyiraman otomatis berjalan sesuai pengaturan Anda.</p>
+            </div>
+
+            <!-- 2. Jadwal Penyiraman -->
+            <div id="schedule" class="page">
+                <h2>⏰ Jadwal Penyiraman</h2>
+                <div id="scheduleList"></div>
+                <div style="margin-top: 20px;">
+                    <h3>Tambah Jadwal Baru</h3>
+                    <div class="setting-item">
+                        <label>Waktu:</label>
+                        <input type="time" id="newScheduleTime">
+                        <button class="btn-success" onclick="addSchedule()">Tambah</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Monitoring Kelembapan -->
+            <div id="monitoring" class="page">
+                <h2>💧 Monitoring Kelembapan</h2>
+                <canvas id="humidityChart" width="400" height="200" style="max-width: 100%;"></canvas>
+                <div style="margin-top: 20px;">
+                    <div>Kelembapan Saat Ini: <span id="currentHumidity">42%</span></div>
+                    <div>Batas Bawah: <span id="minHumidity">30%</span>%</div>
+                </div>
+            </div>
+
+            <!-- 4. Kontrol Manual -->
+            <div id="control" class="page">
+                <h2>🎮 Kontrol Manual</h2>
+                <div style="text-align: center; margin: 40px 0;">
+                    <button class="control-btn" onclick="manualPump('on')" id="pumpOnBtn">🚿 Nyalakan Pompa</button>
+                    <button class="control-btn" onclick="manualPump('off')" id="pumpOffBtn">⏹️ Matikan Pompa</button>
+                </div>
+                <div>Durasi Manual: 
+                    <input type="number" id="manualDuration" value="5" min="1" max="60"> menit
+                </div>
+            </div>
+
+            <!-- 5. Notifikasi Error -->
+            <div id="notifications" class="page">
+                <h2>🔔 Notifikasi Error</h2>
+                <div id="notificationList">
+                    <div class="schedule-item">
+                        <span>Pompa gagal start - 10:30</span>
+                        <button class="btn-danger" onclick="dismissNotification(this)">Dismiss</button>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <label>
+                        <input type="checkbox" id="enableNotifications" checked> Aktifkan Notifikasi
+                    </label>
+                </div>
+            </div>
+
+            <!-- 6. Riwayat Penyiraman -->
+            <div id="history" class="page">
+                <h2>📋 Riwayat Penyiraman</h2>
+                <div id="historyList">
+                    <div class="history-item">
+                        <span>Otomatis - 08:00 (5 menit)</span>
+                        <span style="color: #4CAF50;">Sukses</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div id="settingsPanel" class="settings-panel">
+        <div class="settings-content">
+            <h2>⚙️ Pengaturan Lengkap</h2>
+            
+            <div class="setting-group">
+                <h3>🌡️ Pengaturan Sensor</h3>
+                <div class="setting-item">
+                    <label>Batas Kelembapan Bawah:</label>
+                    <input type="number" id="minHumiditySetting" value="30" min="10" max="80">
+                    %
+                </div>
+                <div class="setting-item">
+                    <label>Interval Cek Sensor:</label>
+                    <select id="checkInterval">
+                        <option value="5">Setiap 5 menit</option>
+                        <option value="10">Setiap 10 menit</option>
+                        <option value="15" selected>Setiap 15 menit</option>
+                        <option value="30">Setiap 30 menit</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>💧 Pengaturan Pompa</h3>
+                <div class="setting-item">
+                    <label>Durasi Penyiraman:</label>
+                    <input type="number" id="pumpDuration" value="5" min="1" max="30"> menit
+                </div>
+                <div class="setting-item">
+                    <label>Mode Otomatis:</label>
+                    <input type="checkbox" id="autoMode" checked>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>🔔 Notifikasi</h3>
+                <div class="setting-item">
+                    <label>Email Notifikasi:</label>
+                    <input type="email" id="emailNotification" placeholder="email@example.com">
+                </div>
+                <div class="setting-item">
+                    <label>Sound Alert:</label>
+                    <input type="checkbox" id="soundAlert" checked>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn-success" style="padding: 15px 40px; font-size: 1.2em;" onclick="saveAllSettings()">💾 SIMPAN SEMUA</button>
+                <button class="btn-danger" style="padding: 15px 40px; font-size: 1.2em; margin-left: 15px;" onclick="resetAllSettings()">🔄 RESET</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default Settings
+        let appSettings = {
+            minHumidity: 30,
+            checkInterval: 15,
+            pumpDuration: 5,
+            autoMode: true,
+            enableNotifications: true,
+            soundAlert: true,
+            emailNotification: '',
+            theme: 'light'
+        };
+
+        let schedules = [];
+        let history = [];
+        let notifications = [];
+
+        // Initialize App
+        window.onload = function() {
+            loadSettings();
+            loadData();
+            updateDashboard();
+            renderSchedule();
+            renderHistory();
+            renderNotifications();
+            drawChart();
+        };
+
+        // Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Settings Functions
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function saveAllSettings() {
+            // Update settings dari form
+            appSettings.minHumidity = parseInt(document.getElementById('minHumiditySetting').value);
+            appSettings.checkInterval = parseInt(document.getElementById('checkInterval').value);
+            appSettings.pumpDuration = parseInt(document.getElementById('pumpDuration').value);
+            appSettings.autoMode = document.getElementById('autoMode').checked;
+            appSettings.enableNotifications = document.getElementById('enableNotifications').checked;
+            appSettings.soundAlert = document.getElementById('soundAlert').checked;
+            appSettings.emailNotification = document.getElementById('emailNotification').value;
+
+            // Save to localStorage
+            localStorage.setItem('TandurAppsSettings', JSON.stringify(appSettings));
+            localStorage.setItem('TandurAppsSchedules', JSON.stringify(schedules));
+            localStorage.setItem('TandurAppsHistory', JSON.stringify(history));
+            localStorage.setItem('TandurAppsNotifications', JSON.stringify(notifications));
+
+            updateDashboard();
+            alert('✅ Semua pengaturan berhasil disimpan!');
+            toggleSettings();
+        }
+
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('TandurAppsSettings');
+            if (savedSettings) {
+                appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
+            }
+
+            // Apply settings ke form
+            document.getElementById('minHumiditySetting').value = appSettings.minHumidity;
+            document.getElementById('checkInterval').value = appSettings.checkInterval;
+            document.getElementById('pumpDuration').value = appSettings.pumpDuration;
+            document.getElementById('autoMode').checked = appSettings.autoMode;
+            document.getElementById('enableNotifications').checked = appSettings.enableNotifications;
+            document.getElementById('soundAlert').checked = appSettings.soundAlert;
+            document.getElementById('emailNotification').value = appSettings.emailNotification;
+        }
+
+        function resetAllSettings() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        // Dashboard Update
+        function updateDashboard() {
+            document.getElementById('minHumidity').textContent = appSettings.minHumidity;
+            document.getElementById('currentHumidity').textContent = Math.floor(Math.random() * 20) + appSettings.minHumidity + '%';
+        }
+
+        // Schedule Management
+        function addSchedule() {
+            const time = document.getElementById('newScheduleTime').value;
+            if (time) {
+                schedules.push({ time, id: Date.now() });
+                localStorage.setItem('TandurAppsSchedules', JSON.stringify(schedules));
+                renderSchedule();
+                document.getElementById('newScheduleTime').value = '';
+            }
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById('scheduleList');
+            container.innerHTML = schedules.map(s => `
+                <div class="schedule-item">
+                                    <span>${s.time}</span>
+                <button class="btn-danger" onclick="deleteSchedule(${s.id})">Hapus</button>
+                </div>
+            `).join('') || '<p>Tidak ada jadwal. Tambahkan jadwal baru!</p>';
+        }
+
+        function deleteSchedule(id) {
+            schedules = schedules.filter(s => s.id !== id);
+            localStorage.setItem('TandurAppsSchedules', JSON.stringify(schedules));
+            renderSchedule();
+        }
+
+        // History Management
+        function addHistory(action, duration) {
+            history.unshift({
+                time: new Date().toLocaleString('id-ID'),
+                action,
+                duration: duration || appSettings.pumpDuration,
+                status: 'Sukses'
+            });
+            
+            // Keep only last 50 records
+            if (history.length > 50) history = history.slice(0, 50);
+            localStorage.setItem('TandurAppsHistory', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = history.map(h => `
+                <div class="history-item">
+                    <span>${h.time} - ${h.action} (${h.duration} menit)</span>
+                    <span style="color: ${h.status === 'Sukses' ? '#4CAF50' : '#f44336'}">${h.status}</span>
+                </div>
+            `).join('') || '<p>Belum ada riwayat penyiraman.</p>';
+        }
+
+        // Notifications
+        function addNotification(message) {
+            notifications.unshift({
+                message,
+                time: new Date().toLocaleTimeString('id-ID'),
+                id: Date.now()
+            });
+            
+            if (notifications.length > 20) notifications = notifications.slice(0, 20);
+            localStorage.setItem('TandurAppsNotifications', JSON.stringify(notifications));
+            renderNotifications();
+            
+            if (appSettings.soundAlert) {
+                // Play notification sound (simulasi)
+                console.log('🔔 Notification Sound!');
+            }
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notificationList');
+            container.innerHTML = notifications.map(n => `
+                <div class="schedule-item">
+                    <span>${n.time}: ${n.message}</span>
+                    <button class="btn-danger" onclick="dismissNotification(${n.id}, this)">Dismiss</button>
+                </div>
+            `).join('') || '<p>Tidak ada notifikasi error.</p>';
+        }
+
+        function dismissNotification(id, button) {
+            notifications = notifications.filter(n => n.id !== id);
+            localStorage.setElement('TandurAppsNotifications', JSON.stringify(notifications));
+            renderNotifications();
+        }
+
+        // Manual Control
+        function manualPump(state) {
+            const pumpStatus = document.getElementById('statusPump');
+            const duration = document.getElementById('manualDuration').value;
+            
+            if (state === 'on') {
+                pumpStatus.textContent = 'ON';
+                pumpStatus.parentElement.style.background = 'linear-gradient(45deg, #FF5722, #FF8A65)';
+                addHistory('Manual', duration);
+                addNotification('Pompa dinyalakan manual selama ' + duration + ' menit');
+            } else {
+                pumpStatus.textContent = 'OFF';
+                pumpStatus.parentElement.style.background = 'linear-gradient(45deg, #4CAF50, #81C784)';
+                addNotification('Pompa dimatikan manual');
+            }
+        }
+
+        // Simple Chart for Monitoring
+        function drawChart() {
+            const canvas = document.getElementById('humidityChart');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 6; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, height * i / 5);
+                ctx.lineTo(width, height * i / 5);
+                ctx.stroke();
+            }
+
+            // Draw humidity line (simulasi data)
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.shadowColor = 'rgba(76, 175, 80, 0.3)';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            const data = [35, 38, 42, 39, 45, 41, 48, 44];
+            for (let i = 0; i < data.length; i++) {
+                const x = (width / (data.length - 1)) * i;
+                const y = height - (data[i] / 100) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Segoe UI';
+            ctx.textAlign = 'center';
+            data.forEach((value, i) => {
+                const x = (width / (data.length - 1)) * i;
+                ctx.fillText(value + '%', x, height - (value / 100) * height - 10);
+            });
+        }
+
+        // Load all data
+        function loadData() {
+            const savedSchedules = localStorage.getItem('TandurAppsSchedules');
+            const savedHistory = localStorage.getItem('TandurAppsHistory');
+            const savedNotifications = localStorage.getItem('TandurAppsNotifications');
+            
+            if (savedSchedules) schedules = JSON.parse(savedSchedules);
+            if (savedHistory) history = JSON.parse(savedHistory);
+            if (savedNotifications) notifications = JSON.parse(savedNotifications);
+        }
+
+        // Auto simulation (untuk demo)
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                addNotification('Kelembapan rendah! Memulai penyiraman otomatis.');
+                manualPump('on');
+                setTimeout(() => manualPump('off'), 2000);
+            }
+            updateDashboard();
+            drawChart();
+        }, 10000);
+
+        // Close settings on outside click
+        document.getElementById('settingsPanel').addEventListener('click', function(e) {
+            if (e.target === this) toggleSettings();
+        });
+
+        // Keyboard shortcut for settings (Ctrl + S)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                toggleSettings();
+            }
+        });
+    </script>
+</body>
+</html>
